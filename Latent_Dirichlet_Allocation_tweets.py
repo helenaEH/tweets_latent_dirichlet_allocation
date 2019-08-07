@@ -9,23 +9,18 @@ from sklearn.decomposition import LatentDirichletAllocation
 import spacy
 nlp = spacy.load('en_core_web_sm')
 
-
-file = 'ewarren'
+filename = 'ewarren'
 regex = r'https?:\/\/.*[\r\n]*|\@[A-Za-z0-9]*|\#[A-Za-z0-9]*|pic.[A-Za-z0-9]*.[A-Za-z0-9]*\/[A-Za-z0-9]*|\n' \
         r'twitter.com\/[A-Za-z0-9]*|www.[A-Za-z0-9]*.[A-Za-z0-9]*\/[A-Za-z0-9].*|com|twitter'
 cv = CountVectorizer(min_df=5, max_df=0.95)
 tf = TfidfTransformer()
 n_components = 13
 n_top_words = 12
-m_lda = LatentDirichletAllocation(n_components=n_components, max_iter=5,
-                                  learning_method='online',
-                                  learning_offset=50.,
-                                  random_state=0)
 
 
-def import_tweets(filename, regex_string):
+def import_tweets(file, regex_string):
     """ Reading JSON file into a list and cleaning the tweets with regex """
-    tweets = pd.read_json(f'{filename}.json')['text'].tolist()
+    tweets = pd.read_json(f'{file}.json')['text'].tolist()
     tweets = list(re.sub(regex_string, '', k, flags=re.MULTILINE) for k in tweets)
     return tweets
 
@@ -74,11 +69,18 @@ def save_textfile(topic_list):
     return
 
 
-tweet_list = import_tweets(file, regex)
-spacified_tweets = spacify_my_text(tweet_list)
-fitted_model = fit_model(spacified_tweets)
+if __name__ == '__main__':
+    tweet_list = import_tweets(filename, regex)
+    spacified_tweets = spacify_my_text(tweet_list)
 
-print("\nTopics in LDA model:")
-L = print_top_words2(fitted_model, n_top_words)
-printed = [print(i) for i in L]
-save_textfile(L)
+    m_lda = LatentDirichletAllocation(n_components=n_components, max_iter=5,
+                                      learning_method='online',
+                                      learning_offset=50.,
+                                      random_state=0)
+
+    fitted_model = fit_model(spacified_tweets)
+
+    print("\nTopics in LDA model:")
+    L = print_top_words2(fitted_model, n_top_words)
+    printed = [print(i) for i in L]
+    save_textfile(L)
